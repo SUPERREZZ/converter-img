@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Converter img || Create By Rezz</title>
+    <link rel="shortcut icon" href="aset/1.png" type="image/x-icon" />
+    <!-- Tambahkan Tailwind CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body class="bg-gradient-to-br from-blue-400 to-indigo-600">
+    <div class="flex flex-col items-center justify-center h-screen">
+      <input
+        type="file"
+        id="fileinput"
+        class="bg-white border border-gray-300 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-lg px-4 py-2"
+      />
+      <div
+        id="filePreview"
+        class="mt-4 p-4 bg-gray-200 bg-opacity-70 rounded-lg flex flex-col items-center justify-center hidden"
+      >
+        <img
+          id="imagePreview"
+          class="mb-2 rounded-lg"
+          src="#"
+          alt="Preview"
+          style="max-width: 200px; max-height: 200px"
+        />
+        <span id="fileName" class="text-lg font-semibold text-gray-800"></span>
+      </div>
+      <select
+        name="outputType"
+        id="outputType"
+        class="mt-4 bg-white border border-gray-300 shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-lg px-4 py-2"
+      >
+        <option value="jpeg">JPG</option>
+        <option value="png">PNG</option>
+        <option value="avif">AVIF</option>
+        <option value="webp">WEBP</option>
+      </select>
+      <button
+        id="convertbtn"
+        class="mt-8 bg-gradient-to-br from-blue-800 hover:to-blue-800 via-blue-500 hover:via-blue-500 to-blue-300 hover:from-blue-300 text-white px-6 py-3 
+        rounded-lg transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+      >
+        Convert
+      </button>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const converterImage = (inputFile, outputType) => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const img = new Image();
+              img.onload = () => {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                try {
+                  canvas.toBlob(
+                    (blob) => {
+                      resolve({ blob, name: inputFile.name });
+                    },
+                    outputType === "jpeg" ? "image/jpeg" : "image/png"
+                  );
+                } catch (error) {
+                  reject(error);
+                }
+              };
+              img.src = e.target.result;
+            };
+            reader.readAsDataURL(inputFile);
+          });
+        };
+        document
+          .getElementById("convertbtn")
+          .addEventListener("click", async () => {
+            try {
+              const file = document.getElementById("fileinput").files[0];
+              const outputType = document.getElementById("outputType").value;
+              const { blob, name } = await converterImage(file, outputType);
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = name.replace(/\.[^/.]+$/, `.${outputType}`);
+              a.click();
+              document.body.appendChild(a);
+            } catch (error) {
+              console.error("Terjadi kesalahan:", error);
+            }
+          });
+        // Menampilkan preview gambar dan nama file
+        document
+          .getElementById("fileinput")
+          .addEventListener("change", (event) => {
+            const filePreview = document.getElementById("filePreview");
+            const imagePreview = document.getElementById("imagePreview");
+            const fileName = document.getElementById("fileName");
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              filePreview.classList.remove("hidden");
+              imagePreview.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            fileName.innerText = `Selected File: ${file.name}`;
+          });
+      });
+    </script>
+  </body>
+</html>
